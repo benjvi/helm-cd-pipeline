@@ -1,0 +1,4 @@
+alertmanager:
+  replicaCount: 2
+server:
+  replicaCount: 2
