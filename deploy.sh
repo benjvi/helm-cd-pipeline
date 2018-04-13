@@ -1,5 +1,7 @@
 #!/bin/sh
+helm home
 helm version
+ls "/root/.helm"
 helm plugin list
 
 # TODO : filter by directories which had changes on current branch
