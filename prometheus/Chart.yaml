@@ -11,3 +11,4 @@ sources:
 - https://github.com/prometheus/prometheus
 - https://github.com/kubernetes/kube-state-metrics
 version: 3.0.2
+appVersion: test-Version

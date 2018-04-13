@@ -10,6 +10,7 @@ metadata:
     release: {{ .Release.Name }}
   name: {{ template "prometheus.alertmanager.fullname" . }}
 spec:
+  progressDeadlineSeconds: 120
   replicas: {{ .Values.alertmanager.replicaCount }}
   template:
     metadata:
