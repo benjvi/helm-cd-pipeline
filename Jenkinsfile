@@ -1,7 +1,7 @@
 def label = "worker-${UUID.randomUUID().toString()}"
 
 podTemplate(label: label, containers: [
-  containerTemplate(name: 'helm-diff', image: 'benjvi/k8s-helm-diff:v2.8.2', command: 'cat', ttyEnabled: true)
+  containerTemplate(name: 'helm-diff', image: 'benjvi/k8s-helm-diff:latest', command: 'cat', ttyEnabled: true)
 ]) {
   node(label) {
     def myRepo = checkout scm
@@ -11,6 +11,15 @@ podTemplate(label: label, containers: [
     def previousGitCommit = sh(script: "git rev-parse ${gitCommit}~", returnStdout: true)
     
     container('helm-diff') {
+      sh """
+      # TODO this should be in docker image, for the jenkins user
+      mkdir -p /home/jenkins/.helm/plugins/helm-diff
+      cp /etc/plugins/helm-diff/* /home/jenkins/.helm/plugins/helm-diff/
+
+      helm home
+      helm version
+      helm plugin list"""
+  
       sh "./deploy.sh" 
     }
   }

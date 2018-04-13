@@ -1,11 +1,4 @@
 #!/bin/sh
-# TODO this should be in docker image, for the jenkins user
-helm plugin install https://github.com/databus23/helm-diff 
-
-helm home
-helm version
-helm plugin list
-
 # TODO : filter by directories which had changes on current branch
 # Alternatively, look for changes in other branches, and only exclude those changes (assumes good hygene wrt branch deletion)
 # Otherwise parallel feature branches would override each other
