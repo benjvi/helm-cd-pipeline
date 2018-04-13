@@ -1,7 +1,9 @@
 #!/bin/sh
+# TODO this should be in docker image, for the jenkins user
+helm plugin install https://github.com/databus23/helm-diff 
+
 helm home
 helm version
-ls "/root/.helm"
 helm plugin list
 
 # TODO : filter by directories which had changes on current branch
