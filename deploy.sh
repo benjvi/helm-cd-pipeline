@@ -9,7 +9,7 @@ for i in $(ls -1d */); do
   release=$(echo "$i" | tr -d '/')
   
   release_needed=false
-  diff_output=$(helm diff --values "$release/values-stage.yml" "$release" "$i" 2> /dev/null)
+  diff_output=$(helm diff --values "$release/values-stage.yml" "$release" "$i")
   diff_success=$?
   diff_len=$(printf "$diff_output" | wc -l | tr -d " ")
   if ([ $diff_success -ne 0 ] || [ $diff_len -gt 1 ]); then
