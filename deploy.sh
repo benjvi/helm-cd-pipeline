@@ -8,9 +8,10 @@ function stage_release_diff() {
     RELEASE_ARGS=""
   fi
 
-  local diff_output=$(helm diff $RELEASE_ARGS "$release" "$release/" 2> /tmp/stage-diff-error )
-  local diff_err=$(</tmp/stage-diff-error)
+  # cant be local, $? doesnt work
+  diff_output=$(helm diff $RELEASE_ARGS "$release" "$release/" 2> /tmp/stage-diff-error )
   local diff_success=$?
+  local diff_err=$(cat /tmp/stage-diff-error)
   local diff_len=$(printf "$diff_output" | wc -l | tr -d " ")
   # TODO would be better to rely on exit codes rather than output length (helm diff doesn't have that right now)
   if ([ $diff_success -ne 0 ] || [ $diff_len -gt 1 ]); then
@@ -40,6 +41,7 @@ printf "Modified packages: [ %s]\n" "$(echo $modified_packages_in_branch | tr '\
 
 for release in ${modified_packages_in_branch}; do
   release_diff=$(stage_release_diff "$release")
+  printf "release_diff: $release_diff \n"
   if [ -n "$release_diff" ]; then
     echo "Release package \"$release\" has changed, upgrading..."
     if [ -e "$release/values-stage.yml" ]; then
