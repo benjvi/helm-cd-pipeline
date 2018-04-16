@@ -17,9 +17,7 @@ podTemplate(label: label, containers: [
       helm version
       helm plugin list"""
   
-      sh """
-      modified=\$(printf "jenkins\ncockroachdb\n")
-      ./deploy.sh ${env.modified}"""
+      sh "./deploy.sh"
     }
   }
 }

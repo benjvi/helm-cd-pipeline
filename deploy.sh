@@ -45,7 +45,7 @@ for release in ${modified_packages_in_branch}; do
     # prefer not to force or purge (probably there are resources we shouldn't destroy)
     # this will also fail if a previous revision failed and was not rolled back
     # TODO: try to rollback to previous version on failure (this can still fail if its the first release)
-    helm upgrade --install --wait --timeout 120 --namespace "infra" $RELEASE_ARGS "$release" "$i" || true 
+    helm upgrade --install --wait --timeout 120 --namespace "infra" $RELEASE_ARGS "$release" "$release/" || true 
   else
     printf "Release \"$release\" is unchanged, skipping it\n"
   fi
