@@ -42,6 +42,12 @@ for release in ${modified_packages_in_branch}; do
   release_diff=$(stage_release_diff "$release")
   if [ -n "$release_diff" ]; then
     echo "Release package \"$release\" has changed, upgrading..."
+    if [ -e "$release/values-stage.yml" ]; then
+      RELEASE_ARGS="--values $release/values-stage.yml"
+    else
+      RELEASE_ARGS=""
+    fi
+
     # won't work if release was deleted but not purged
     # prefer not to purge (are there resources we shouldn't destroy??)
     # prefer not to force or purge (probably there are resources we shouldn't destroy)
