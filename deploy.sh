@@ -8,7 +8,7 @@ all_packages=$(ls -1d */ | tr -d '/' )
 # 
 # One alternative would be to look for changes in other branches, and only exclude those changes (assumes good hygene wrt branch deletion)
 # Otherwise parallel feature branches would override each other
-modified_packages_in_branch=$(git diff --name-only master HEAD | cut -d'/' -f1 -s | sort | uniq)
+modified_packages_in_branch=$1
 printf "Modified packages: [ %s]\n" "$(echo $modified_packages_in_branch | tr '\n' ' ')"
 
 # TODO: warn on unchanged releases that have a diff

@@ -9,14 +9,15 @@ podTemplate(label: label, containers: [
     def gitBranch = myRepo.GIT_BRANCH
     def shortGitCommit = "${gitCommit[0..10]}"
     def previousGitCommit = sh(script: "git rev-parse ${gitCommit}~", returnStdout: true)
-    
+    def modifiedPackagesInBranch = sh(script: "git diff --name-only master HEAD | cut -d'/' -f1 -s | sort | uniq", returnStdout: true)
+
     container('helm-diff') {
       sh """
       helm home
       helm version
       helm plugin list"""
   
-      sh "./deploy.sh" 
+      sh "./deploy.sh \"${modifiedPackagesInBranch}\"" 
     }
   }
 }
