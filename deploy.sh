@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 all_packages=$(ls -1d */ | tr -d '/' )
 
 # if we changed a package compared to master we must always try to deploy
@@ -49,13 +49,16 @@ for release in ${modified_packages_in_branch}; do
   fi
 done
 
-unmodified_packages=$(sort <(echo "$all_packages") <(echo "$modified_packages_in_branch") | uniq -u )
+printf "$all_packages" > /tmp/all-packages
+printf "$modified_packages_in_branch" > /tmp/modified-packages
+
+unmodified_packages=$(sort /tmp/all-packages /tmp/modified-packages | uniq -u )
 printf "Unmodified packages: [ %s]\n" "$(echo $unmodified_packages | tr '\n' ' ')"
 
 for release in ${unmodified_packages}; do
   release_diff=$(stage_release_diff "$release")
   if [ -n "$release_diff" ]; then
-    echo "WARNING: Release \"$release\" has been updated outside of this branch"    
+    echo "WARNING: Release \"$release\" has been updated outside of this branch. You may want to fix this"    
   fi
 done
 
