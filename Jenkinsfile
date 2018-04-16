@@ -9,7 +9,7 @@ podTemplate(label: label, containers: [
     def gitBranch = myRepo.GIT_BRANCH
     def shortGitCommit = "${gitCommit[0..10]}"
     def previousGitCommit = sh(script: "git rev-parse ${gitCommit}~", returnStdout: true)
-    sh "git branch master origin/master" 
+    sh "git branch master origin/master || true" 
 
     container('helm-diff') {
       sh """
