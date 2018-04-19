@@ -9,15 +9,25 @@ podTemplate(label: label, containers: [
     def gitBranch = myRepo.GIT_BRANCH
     def shortGitCommit = "${gitCommit[0..10]}"
     def previousGitCommit = sh(script: "git rev-parse ${gitCommit}~", returnStdout: true)
+    // manually configured jenkins job to check out branch not detached build 
+    // deploy script requires this
 
     if ( gitBranch == "master" ) {
+      // this is a git hash representing the null state
+      // if we dont find a previous successful build then we apply everything
+      // this may not be appropriate if (e.g.) importing a pre-existing repo
+      def lastAppliedHash = sh(script: "git hash-object -t tree /dev/null") 
+      // getRawBuild and getPreviousSuccessfulBuild requires admin approval in jenkins
+      def lastSuccessfulBuild = currentBuild.rawBuild.getPreviousSuccessfulBuild()
+      if ( lastSuccessfulBuild ) {
+        def scmAction = lastSuccessfulBuild?.actions.find { action -> action instanceof jenkins.scm.api.SCMRevisionAction }
+        lastAppliedHash = scmAction?.revision?.hash
+      } 
       container('helm-diff') { 
-        // manually configured jenkins job to check out branch not detached build 
-        // TODO: master script needs to parse revisions differently
-        sh "./deploy.sh s101"
+        sh "./deploy.sh s101 \"${lastAppliedHash}\""
       }
     } else {
-      // here need to checkout master to compare
+      // need to checkout master in order to compare as part of deploy
       sh "git branch master origin/master || true" 
       container('helm-diff') { 
         sh "./deploy.sh infra"

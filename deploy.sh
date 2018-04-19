@@ -1,5 +1,6 @@
 #!/bin/sh
 target_ns=${1:-infra}
+diff_base_ref=${2:-master}
 
 function stage_release_diff() {
   local release=$1
@@ -33,14 +34,15 @@ all_packages=$(ls -1d */ | tr -d '/' )
 # Otherwise parallel feature branches would override each other
 #
 # NB jenkins doesn't check out in a branch be default which can cause problems here 
-modified_packages_in_branch=$(git diff --name-only master HEAD | cut -d'/' -f1 -s | sort | uniq)
-printf "Modified packages in this branch: [ %s]\n" "$(echo $modified_packages_in_branch | tr '\n' ' ')"
+# TODO this doesn't deploy uncommited changes right now - is this meant to be used for manual deployments?
+modified_packages_git=$(git diff --name-only "${diff_base_ref}" HEAD | cut -d'/' -f1 -s | sort | uniq)
+printf "Modified packages vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $modified_packages_in_branch | tr '\n' ' ')"
 
 # suggest: after merging to master, we apply all releases (if they are different). also periodically 
 
 ## --- For packages touched in this branch, apply helm updates if it's not a no-op --- ##
 
-for release in ${modified_packages_in_branch}; do
+for release in ${modified_packages_git}; do
   release_diff=$(stage_release_diff "$release")
   printf "release_diff: $release_diff \n"
   if [ -n "$release_diff" ]; then
@@ -65,11 +67,11 @@ done
 ## --- Warn when helm release changed, even if we didn't touch the chart --- ##
 
 printf "$all_packages" > /tmp/all-packages
-printf "$modified_packages_in_branch" > /tmp/modified-packages
-unmodified_packages=$(sort /tmp/all-packages /tmp/modified-packages | uniq -u )
-printf "Unmodified packages in this branch: [ %s]\n" "$(echo $unmodified_packages | tr '\n' ' ')"
+printf "$modified_packages_git" > /tmp/modified-packages
+unmodified_packages_git=$(sort /tmp/all-packages /tmp/modified-packages | uniq -u )
+printf "Unmodified packages vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $unmodified_packages_git | tr '\n' ' ')"
 
-for release in ${unmodified_packages}; do
+for release in ${unmodified_packages_git}; do
   release_diff=$(stage_release_diff "$release")
   if [ -n "$release_diff" ]; then
     printf "WARNING: Release \"$release\" deployed is different than the version in master. "
