@@ -34,7 +34,7 @@ all_packages=$(ls -1d */ | tr -d '/' )
 #
 # NB jenkins doesn't check out in a branch be default which can cause problems here 
 modified_packages_in_branch=$(git diff --name-only master HEAD | cut -d'/' -f1 -s | sort | uniq)
-printf "Modified packages: [ %s]\n" "$(echo $modified_packages_in_branch | tr '\n' ' ')"
+printf "Modified packages in this branch: [ %s]\n" "$(echo $modified_packages_in_branch | tr '\n' ' ')"
 
 # suggest: after merging to master, we apply all releases (if they are different). also periodically 
 
@@ -67,12 +67,14 @@ done
 printf "$all_packages" > /tmp/all-packages
 printf "$modified_packages_in_branch" > /tmp/modified-packages
 unmodified_packages=$(sort /tmp/all-packages /tmp/modified-packages | uniq -u )
-printf "Unmodified packages: [ %s]\n" "$(echo $unmodified_packages | tr '\n' ' ')"
+printf "Unmodified packages in this branch: [ %s]\n" "$(echo $unmodified_packages | tr '\n' ' ')"
 
 for release in ${unmodified_packages}; do
   release_diff=$(stage_release_diff "$release")
   if [ -n "$release_diff" ]; then
-    echo "WARNING: Release \"$release\" has been updated outside of this branch. You may want to fix this"    
+    printf "WARNING: Release \"$release\" deployed is different than the version in master. "
+    printf "It did not change in this branch. "
+    printf "If this change isn't present on another feature branch, you may want to fix this\n"
   fi
 done
 
