@@ -24,7 +24,7 @@ function get_release_diff() {
 }
 
 
-all_packages=$(ls -1d */ | tr -d '/' )
+all_charts=$(ls -1d */ | tr -d '/' )
 
 # if we changed a package compared to master we must always try to deploy
 # in case we changed a package then reverted it, would have to manually fix that...
@@ -36,14 +36,14 @@ all_packages=$(ls -1d */ | tr -d '/' )
 #
 # NB jenkins doesn't check out in a branch be default which can cause problems here 
 # Also note we calculate diffs using the current working state not with HEAD - so its the same as what we use to deploy
-modified_packages_git=$(git diff --name-only "${diff_base_ref}" | cut -d'/' -f1 -s | sort | uniq)
-printf "Modified packages vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $modified_packages_git | tr '\n' ' ')"
+modified_charts_git=$(git diff --name-only "${diff_base_ref}" | cut -d'/' -f1 -s | sort | uniq)
+printf "Modified charts vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $modified_charts_git | tr '\n' ' ')"
 
 # suggest: after merging to master, we apply all releases (if they are different). also periodically 
 
-## --- For packages touched in this branch, apply helm updates if it's not a no-op --- ##
+## --- For charts touched in this branch, apply helm updates if it's not a no-op --- ##
 
-for chart_name in ${modified_packages_git}; do
+for chart_name in ${modified_charts_git}; do
   release_diff=$(get_release_diff "$chart_name")
   release="${chart_name}-${target_ns}"
   if [ -n "$release_diff" ]; then
@@ -68,12 +68,12 @@ done
 
 ## --- Warn when helm release changed, even if we didn't touch the chart --- ##
 
-printf "$all_packages" > /tmp/all-packages
-printf "$modified_packages_git" > /tmp/modified-packages
-unmodified_packages_git=$(sort /tmp/all-packages /tmp/modified-packages | uniq -u )
-printf "Unmodified packages vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $unmodified_packages_git | tr '\n' ' ')"
+printf "$all_charts" > /tmp/all-charts
+printf "$modified_charts_git" > /tmp/modified-charts
+unmodified_charts_git=$(sort /tmp/all-charts /tmp/modified-charts | uniq -u )
+printf "Unmodified charts vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $unmodified_charts_git | tr '\n' ' ')"
 
-for chart_name in ${unmodified_packages_git}; do
+for chart_name in ${unmodified_charts_git}; do
   release_diff=$(get_release_diff "$chart_name")
   release="${chart_name}-${target_ns}"
   if [ -n "$release_diff" ]; then
