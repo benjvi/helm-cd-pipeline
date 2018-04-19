@@ -1,4 +1,5 @@
 #!/bin/sh
+target_namespace=${1:-infra}
 
 function stage_release_diff() {
   local release=$1

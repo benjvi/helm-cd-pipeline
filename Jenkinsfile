@@ -9,15 +9,19 @@ podTemplate(label: label, containers: [
     def gitBranch = myRepo.GIT_BRANCH
     def shortGitCommit = "${gitCommit[0..10]}"
     def previousGitCommit = sh(script: "git rev-parse ${gitCommit}~", returnStdout: true)
+    // manually configured jenkins job to check out branch not detached build 
+    // here need to checkout master to compare
     sh "git branch master origin/master || true" 
 
-    container('helm-diff') {
-      sh """
-      helm home
-      helm version
-      helm plugin list"""
-  
-      sh "./deploy.sh"
+    if ( gitBranch == "master" ) {
+        container('helm-diff') { 
+          // TODO: master script needs to parse revisions differently
+          sh "./deploy.sh s101"
+        }
+    } else {
+        container('helm-diff') { 
+          sh "./deploy.sh infra"
+        }    
     }
   }
 }
