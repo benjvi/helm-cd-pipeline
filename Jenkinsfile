@@ -33,7 +33,7 @@ podTemplate(label: label, containers: [
 
 @NonCPS
 def lastBuildHash() {
-  def lastBuildHash = sh(script: "git hash-object -t tree /dev/null") 
+  def lastBuildHash = sh(script: "git hash-object -t tree /dev/null | tr -d \"[:space:]\"", returnStdout: true) 
   // getRawBuild and getPreviousSuccessfulBuild requires jenkins admin approval
   def lastSuccessfulBuild = currentBuild.rawBuild.getPreviousSuccessfulBuild()
   if ( lastSuccessfulBuild ) {
