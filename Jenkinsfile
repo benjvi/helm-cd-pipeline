@@ -11,22 +11,13 @@ podTemplate(label: label, containers: [
     def previousGitCommit = sh(script: "git rev-parse ${gitCommit}~", returnStdout: true)
     // manually configured jenkins job to check out branch not detached build 
     // deploy script requires this
+    def lastAppliedHash = lastBuildHash()
 
     if ( gitBranch == "master" ) {
       // this is a git hash representing the null state
       // if we dont find a previous successful build then we apply everything
       // this may not be appropriate if (e.g.) importing a pre-existing repo
-      def lastAppliedHash = sh(script: "git hash-object -t tree /dev/null") 
-      // getRawBuild and getPreviousSuccessfulBuild requires jenkins admin approval
-      def lastSuccessfulBuild = currentBuild.rawBuild.getPreviousSuccessfulBuild()
-      if ( lastSuccessfulBuild ) {
-        // actions, instanceof, revision, hash require jenkins admin approval
-        def scmAction = lastSuccessfulBuild?.actions.find { action -> action instanceof jenkins.scm.api.SCMRevisionAction }
-        lastAppliedHash = scmAction?.revision?.hash
-      }
       echo(lastAppliedHash)
-      echo(lastAppliedHash.properties)
-      echo(lastAppliedHash.toString())
       container('helm-diff') { 
         sh "./deploy.sh s101 \"${lastAppliedHash}\""
       }
@@ -40,3 +31,15 @@ podTemplate(label: label, containers: [
   }
 }
 
+@NonCPS
+def lastBuildHash() {
+  def lastBuildHash = sh(script: "git hash-object -t tree /dev/null") 
+  // getRawBuild and getPreviousSuccessfulBuild requires jenkins admin approval
+  def lastSuccessfulBuild = currentBuild.rawBuild.getPreviousSuccessfulBuild()
+  if ( lastSuccessfulBuild ) {
+    // actions, instanceof, revision, hash require jenkins admin approval
+    def scmAction = lastSuccessfulBuild?.actions.find { action -> action instanceof jenkins.scm.api.SCMRevisionAction }
+    lastBuildHash = scmAction?.revision?.hash
+  }
+  return lastBuildHash
+}
