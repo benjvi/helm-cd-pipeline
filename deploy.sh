@@ -2,11 +2,11 @@
 target_ns=${1?"Mandatory first arg missing: target namespace"}
 diff_base_ref=${2:-master}
 
-function stage_release_diff() {
+function get_release_diff() {
   local chart_name=$1
   local release="${chart_name}-${target_ns}"
-  if [ -e "${chart_name}/values-stage.yml" ]; then
-    RELEASE_ARGS="--values ${chart_name}/values-stage.yml"
+  if [ -e "${chart_name}/values-${target_ns}.yml" ]; then
+    RELEASE_ARGS="--values ${chart_name}/values-${target_ns}.yml"
   else
     RELEASE_ARGS=""
   fi
@@ -44,13 +44,13 @@ printf "Modified packages vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $modifie
 ## --- For packages touched in this branch, apply helm updates if it's not a no-op --- ##
 
 for chart_name in ${modified_packages_git}; do
-  release_diff=$(stage_release_diff "$chart_name")
+  release_diff=$(get_release_diff "$chart_name")
   release="${chart_name}-${target_ns}"
   if [ -n "$release_diff" ]; then
     printf "Release diff: \n${release_diff}\n"
     echo "Package for release \"$release\" is different than the currently deployed version, upgrading..."
-    if [ -e "$chart_name/values-stage.yml" ]; then
-      RELEASE_ARGS="--values $chart_name/values-stage.yml"
+    if [ -e "$chart_name/values-${target_ns}.yml" ]; then
+      RELEASE_ARGS="--values $chart_name/values-${target_ns}.yml"
     else
       RELEASE_ARGS=""
     fi
@@ -74,7 +74,7 @@ unmodified_packages_git=$(sort /tmp/all-packages /tmp/modified-packages | uniq -
 printf "Unmodified packages vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $unmodified_packages_git | tr '\n' ' ')"
 
 for chart_name in ${unmodified_packages_git}; do
-  release_diff=$(stage_release_diff "$chart_name")
+  release_diff=$(get_release_diff "$chart_name")
   release="${chart_name}-${target_ns}"
   if [ -n "$release_diff" ]; then
     printf "Release diff: \n${release_diff}\n"
