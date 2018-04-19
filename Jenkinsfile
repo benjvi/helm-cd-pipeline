@@ -17,12 +17,16 @@ podTemplate(label: label, containers: [
       // if we dont find a previous successful build then we apply everything
       // this may not be appropriate if (e.g.) importing a pre-existing repo
       def lastAppliedHash = sh(script: "git hash-object -t tree /dev/null") 
-      // getRawBuild and getPreviousSuccessfulBuild requires admin approval in jenkins
+      // getRawBuild and getPreviousSuccessfulBuild requires jenkins admin approval
       def lastSuccessfulBuild = currentBuild.rawBuild.getPreviousSuccessfulBuild()
       if ( lastSuccessfulBuild ) {
+        // actions, instanceof, revision, hash require jenkins admin approval
         def scmAction = lastSuccessfulBuild?.actions.find { action -> action instanceof jenkins.scm.api.SCMRevisionAction }
         lastAppliedHash = scmAction?.revision?.hash
-      } 
+      }
+      echo(lastAppliedHash)
+      echo(lastAppliedHash.properties)
+      echo(lastAppliedHash.toString())
       container('helm-diff') { 
         sh "./deploy.sh s101 \"${lastAppliedHash}\""
       }
