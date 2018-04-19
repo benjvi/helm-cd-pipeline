@@ -35,8 +35,8 @@ all_packages=$(ls -1d */ | tr -d '/' )
 # Otherwise parallel feature branches would override each other
 #
 # NB jenkins doesn't check out in a branch be default which can cause problems here 
-# TODO this doesn't deploy uncommited changes right now - is this meant to be used for manual deployments?
-modified_packages_git=$(git diff --name-only "${diff_base_ref}" HEAD | cut -d'/' -f1 -s | sort | uniq)
+# Also note we calculate diffs using the current working state not with HEAD - so its the same as what we use to deploy
+modified_packages_git=$(git diff --name-only "${diff_base_ref}" | cut -d'/' -f1 -s | sort | uniq)
 printf "Modified packages vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $modified_packages_git | tr '\n' ' ')"
 
 # suggest: after merging to master, we apply all releases (if they are different). also periodically 
