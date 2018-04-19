@@ -11,15 +11,17 @@ podTemplate(label: label, containers: [
     def previousGitCommit = sh(script: "git rev-parse ${gitCommit}~", returnStdout: true)
     // manually configured jenkins job to check out branch not detached build 
     // deploy script requires this
-    def lastAppliedHash = getLastSuccessfulCommit()
+    
+    // in case we do ff-merges and/or multiple merges occur between scm polls 
+    // if just using merge commits or squash merges just need HEAD~1 here 
+    def lastAppliedRef = getLastSuccessfulCommit()
 
     if ( gitBranch == "master" ) {
       // this is a git hash representing the null state
       // if we dont find a previous successful build then we apply everything
       // this may not be appropriate if (e.g.) importing a pre-existing repo
-      echo(lastAppliedHash)
       container('helm-diff') { 
-        sh "./deploy.sh s101 \"${lastAppliedHash}\""
+        sh "./deploy.sh s101 \"${lastAppliedRef}\""
       }
     } else {
       // need to checkout master in order to compare as part of deploy
@@ -32,6 +34,7 @@ podTemplate(label: label, containers: [
 }
 
 def getLastSuccessfulCommit() {
+  // this hash is equivalent to an empty repo
   def lastSuccessfulHash = sh(script: "git hash-object -t tree /dev/null | tr -d \"[:space:]\"", returnStdout: true)
   def lastSuccessfulBuild = currentBuild.rawBuild.getPreviousSuccessfulBuild()
   if ( lastSuccessfulBuild ) {
