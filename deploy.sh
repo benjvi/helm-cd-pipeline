@@ -1,5 +1,5 @@
 #!/bin/sh
-target_namespace=${1:-infra}
+target_ns=${1:-infra}
 
 function stage_release_diff() {
   local release=$1
@@ -9,10 +9,10 @@ function stage_release_diff() {
     RELEASE_ARGS=""
   fi
 
-  # cant be local, $? doesnt work
-  diff_output=$(helm diff $RELEASE_ARGS "$release" "$release/" 2> /tmp/stage-diff-error )
+  # this var cant be local, $? doesnt work
+  diff_output=$(helm diff $RELEASE_ARGS "${release}-${target_ns}" "$release/" 2> "/tmp/${target_ns}-diff-error" )
   local diff_success=$?
-  local diff_err=$(cat /tmp/stage-diff-error)
+  local diff_err=$(cat "/tmp/${target_ns}-diff-error")
   local diff_len=$(printf "$diff_output" | wc -l | tr -d " ")
   # TODO would be better to rely on exit codes rather than output length (helm diff doesn't have that right now)
   if ([ $diff_success -ne 0 ] || [ $diff_len -gt 1 ]); then
