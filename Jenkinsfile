@@ -27,7 +27,7 @@ podTemplate(label: label, containers: [
       // need to checkout master in order to compare as part of deploy
       sh "git branch master origin/master || true" 
       container('helm-diff') { 
-        sh "./deploy.sh infra"
+        sh "./deploy.sh test"
       }    
     }
   }
