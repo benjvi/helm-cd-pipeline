@@ -1,17 +1,18 @@
 #!/bin/sh
-target_ns=${1:-infra}
+target_ns=${1?"Mandatory first arg missing: target namespace"}
 diff_base_ref=${2:-master}
 
 function stage_release_diff() {
-  local release=$1
-  if [ -e "$release/values-stage.yml" ]; then
-    RELEASE_ARGS="--values $release/values-stage.yml"
+  local chart_name=$1
+  local release="${chart_name}-${target_ns}"
+  if [ -e "${chart_name}/values-stage.yml" ]; then
+    RELEASE_ARGS="--values ${chart_name}/values-stage.yml"
   else
     RELEASE_ARGS=""
   fi
 
   # this var cant be local, $? doesnt work
-  diff_output=$(helm diff $RELEASE_ARGS "${release}-${target_ns}" "$release/" 2> "/tmp/${target_ns}-diff-error" )
+  diff_output=$(helm diff $RELEASE_ARGS "${release}" "${chart_name}/" 2> "/tmp/${target_ns}-diff-error" )
   local diff_success=$?
   local diff_err=$(cat "/tmp/${target_ns}-diff-error")
   local diff_len=$(printf "$diff_output" | wc -l | tr -d " ")
@@ -36,19 +37,20 @@ all_packages=$(ls -1d */ | tr -d '/' )
 # NB jenkins doesn't check out in a branch be default which can cause problems here 
 # TODO this doesn't deploy uncommited changes right now - is this meant to be used for manual deployments?
 modified_packages_git=$(git diff --name-only "${diff_base_ref}" HEAD | cut -d'/' -f1 -s | sort | uniq)
-printf "Modified packages vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $modified_packages_in_branch | tr '\n' ' ')"
+printf "Modified packages vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $modified_packages_git | tr '\n' ' ')"
 
 # suggest: after merging to master, we apply all releases (if they are different). also periodically 
 
 ## --- For packages touched in this branch, apply helm updates if it's not a no-op --- ##
 
-for release in ${modified_packages_git}; do
-  release_diff=$(stage_release_diff "$release")
-  printf "release_diff: $release_diff \n"
+for chart_name in ${modified_packages_git}; do
+  release_diff=$(stage_release_diff "$chart_name")
+  release="${chart_name}-${target_ns}"
   if [ -n "$release_diff" ]; then
-    echo "Release package \"$release\" has changed, upgrading..."
-    if [ -e "$release/values-stage.yml" ]; then
-      RELEASE_ARGS="--values $release/values-stage.yml"
+    printf "Release diff: \n${release_diff}\n"
+    echo "Package for release \"$release\" is different than the currently deployed version, upgrading..."
+    if [ -e "$chart_name/values-stage.yml" ]; then
+      RELEASE_ARGS="--values $chart_name/values-stage.yml"
     else
       RELEASE_ARGS=""
     fi
@@ -58,9 +60,9 @@ for release in ${modified_packages_git}; do
     # prefer not to force or purge (probably there are resources we shouldn't destroy)
     # this will also fail if a previous revision failed and was not rolled back
     # TODO: try to rollback to previous version on failure (this can still fail if its the first release)
-    helm upgrade --install --wait --timeout 120 --namespace "${target_ns}" $RELEASE_ARGS "${release}-${target_ns}" "$release/" || true 
+    helm upgrade --install --wait --timeout 120 --namespace "${target_ns}" $RELEASE_ARGS "${release}" "$chart_name/" || true 
   else
-    printf "Release \"$release\" is unchanged, skipping it\n"
+    printf "Deployed release \"$release\" is already up to date, skipping it\n"
   fi
 done
 
@@ -71,9 +73,11 @@ printf "$modified_packages_git" > /tmp/modified-packages
 unmodified_packages_git=$(sort /tmp/all-packages /tmp/modified-packages | uniq -u )
 printf "Unmodified packages vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $unmodified_packages_git | tr '\n' ' ')"
 
-for release in ${unmodified_packages_git}; do
-  release_diff=$(stage_release_diff "$release")
+for chart_name in ${unmodified_packages_git}; do
+  release_diff=$(stage_release_diff "$chart_name")
+  release="${chart_name}-${target_ns}"
   if [ -n "$release_diff" ]; then
+    printf "Release diff: \n${release_diff}\n"
     printf "WARNING: Release \"$release\" deployed is different than the version in master. "
     printf "It did not change in this branch. "
     printf "If this change isn't present on another feature branch, you may want to fix this\n"

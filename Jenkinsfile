@@ -33,12 +33,15 @@ podTemplate(label: label, containers: [
   }
 }
 
+// better to move this inside Jenkins lib - this currently exposes rawBuilds which you could do bad things with
 def getLastSuccessfulCommit() {
   // this hash is equivalent to an empty repo
   def lastSuccessfulHash = sh(script: "git hash-object -t tree /dev/null | tr -d \"[:space:]\"", returnStdout: true)
   def lastSuccessfulBuild = currentBuild.rawBuild.getPreviousSuccessfulBuild()
   if ( lastSuccessfulBuild ) {
     lastSuccessfulHash = commitHashForBuild( lastSuccessfulBuild )
+  } else {
+    echo("Using hash for empty repo to diff with: "+lastSuccessfulHash)
   }
   return lastSuccessfulHash
 }
