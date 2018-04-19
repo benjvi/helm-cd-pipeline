@@ -12,7 +12,7 @@ function stage_release_diff() {
   fi
 
   # this var cant be local, $? doesnt work
-  diff_output=$(helm diff $RELEASE_ARGS "${release}" "${chart_name}/" 2> "/tmp/${target_ns}-diff-error" )
+  diff_output=$(helm diff $RELEASE_ARGS "${release}" "${chart_name}/chart/" 2> "/tmp/${target_ns}-diff-error" )
   local diff_success=$?
   local diff_err=$(cat "/tmp/${target_ns}-diff-error")
   local diff_len=$(printf "$diff_output" | wc -l | tr -d " ")
@@ -60,7 +60,7 @@ for chart_name in ${modified_packages_git}; do
     # prefer not to force or purge (probably there are resources we shouldn't destroy)
     # this will also fail if a previous revision failed and was not rolled back
     # TODO: try to rollback to previous version on failure (this can still fail if its the first release)
-    helm upgrade --install --wait --timeout 120 --namespace "${target_ns}" $RELEASE_ARGS "${release}" "$chart_name/" || true 
+    helm upgrade --install --wait --timeout 120 --namespace "${target_ns}" $RELEASE_ARGS "${release}" "$chart_name/chart/" || true 
   else
     printf "Deployed release \"$release\" is already up to date, skipping it\n"
   fi
