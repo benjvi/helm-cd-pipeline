@@ -49,7 +49,7 @@ Master:
             <jenkins.branch.BranchSource>
               <source class="jenkins.plugins.git.GitSCMSource" plugin="git@3.6.4">
                 <id>1af08adf-a63d-4e63-8c9d-1f3d90b8a540</id>
-                <remote>git@gitlab.com:benjvi/test-infra.git</remote>
+                <remote>https://github.com/benjvi/helm-cd-pipeline.git</remote>
                 <credentialsId>1b37d211-97e0-4002-9f50-aac87b28f103</credentialsId>
                 <traits>
                   <jenkins.plugins.git.traits.BranchDiscoveryTrait/>

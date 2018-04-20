@@ -21,7 +21,7 @@ podTemplate(label: label, containers: [
       // if we dont find a previous successful build then we apply everything
       // this may not be appropriate if (e.g.) importing a pre-existing repo
       container('helm-diff') { 
-        sh "./deploy.sh s101 \"${lastAppliedRef}\""
+        sh "./deploy.sh stage \"${lastAppliedRef}\""
       }
     } else {
       // need to checkout master in order to compare as part of deploy
