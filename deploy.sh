@@ -36,7 +36,7 @@ all_charts=$(ls -1d */ | tr -d '/' )
 #
 # NB jenkins doesn't check out in a branch be default which can cause problems here 
 # Also note we calculate diffs using the current working state not with HEAD - so its the same as what we use to deploy
-modified_charts_git=$(git diff --name-only "${diff_base_ref}" | cut -d'/' -f1 -s | sort | uniq)
+modified_charts_git=$(git diff --name-only "${diff_base_ref}" charts/ | cut -d'/' -f2 -s | sort | uniq)
 printf "Modified charts vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $modified_charts_git | tr '\n' ' ')"
 
 # suggest: after merging to master, we apply all releases (if they are different). also periodically 
