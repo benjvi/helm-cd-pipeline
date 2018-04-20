@@ -23,9 +23,9 @@ function get_release_diff() {
   fi
 }
 
-
+cd charts
 all_charts=$(ls -1d */ | tr -d '/' )
-
+cd -
 # if we changed a package compared to master we must always try to deploy
 # in case we changed a package then reverted it, would have to manually fix that...
 # manual change made (via helm): we have no difference compared to master, but file is changed compared to master in another branch - we do nothing
