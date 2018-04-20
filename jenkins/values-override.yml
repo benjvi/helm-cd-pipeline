@@ -1,0 +1,75 @@
+
+Master:
+  # List of plugins to be install during Jenkins master start
+  InstallPlugins:
+    - kubernetes:1.5.2
+    - workflow-aggregator:2.5
+    - workflow-job:2.19
+    - credentials-binding:1.16
+    - git:3.8.0
+  # Used to approve a list of groovy functions in pipelines used the script-security plugin. Can be viewed under /scriptApproval
+  ScriptApproval:
+     - "method hudson.model.Actionable getActions"
+     - "method hudson.model.Run getPreviousSuccessfulBuild"
+     - "method jenkins.plugins.git.AbstractGitSCMSource$SCMRevisionImpl getHash"
+     - "method jenkins.scm.api.SCMRevisionAction getRevision"
+     - "method org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper getRawBuild"
+  Jobs: |-
+    infra-charts: |-
+      <?xml version='1.1' encoding='UTF-8'?>
+      <org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject plugin="workflow-multibranch@2.17">
+        <actions/>
+        <description></description>
+        <properties>
+          <org.jenkinsci.plugins.pipeline.modeldefinition.config.FolderConfig plugin="pipeline-model-definition@1.2.9">
+            <dockerLabel></dockerLabel>
+            <registry plugin="docker-commons@1.11"/>
+          </org.jenkinsci.plugins.pipeline.modeldefinition.config.FolderConfig>
+        </properties>
+        <folderViews class="jenkins.branch.MultiBranchProjectViewHolder" plugin="branch-api@2.0.19">
+          <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+        </folderViews>
+        <healthMetrics>
+          <com.cloudbees.hudson.plugins.folder.health.WorstChildHealthMetric plugin="cloudbees-folder@6.4">
+            <nonRecursive>false</nonRecursive>
+          </com.cloudbees.hudson.plugins.folder.health.WorstChildHealthMetric>
+        </healthMetrics>
+        <icon class="jenkins.branch.MetadataActionFolderIcon" plugin="branch-api@2.0.19">
+          <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+        </icon>
+        <orphanedItemStrategy class="com.cloudbees.hudson.plugins.folder.computed.DefaultOrphanedItemStrategy" plugin="cloudbees-folder@6.4">
+          <pruneDeadBranches>true</pruneDeadBranches>
+          <daysToKeep>-1</daysToKeep>
+          <numToKeep>-1</numToKeep>
+        </orphanedItemStrategy>
+        <triggers/>
+        <disabled>false</disabled>
+        <sources class="jenkins.branch.MultiBranchProject$BranchSourceList" plugin="branch-api@2.0.19">
+          <data>
+            <jenkins.branch.BranchSource>
+              <source class="jenkins.plugins.git.GitSCMSource" plugin="git@3.6.4">
+                <id>1af08adf-a63d-4e63-8c9d-1f3d90b8a540</id>
+                <remote>git@gitlab.com:benjvi/test-infra.git</remote>
+                <credentialsId>1b37d211-97e0-4002-9f50-aac87b28f103</credentialsId>
+                <traits>
+                  <jenkins.plugins.git.traits.BranchDiscoveryTrait/>
+                  <jenkins.plugins.git.traits.LocalBranchTrait>
+                    <extension class="hudson.plugins.git.extensions.impl.LocalBranch">
+                      <localBranch>**</localBranch>
+                    </extension>
+                  </jenkins.plugins.git.traits.LocalBranchTrait>
+                </traits>
+              </source>
+              <strategy class="jenkins.branch.DefaultBranchPropertyStrategy">
+                <properties class="empty-list"/>
+              </strategy>
+            </jenkins.branch.BranchSource>
+          </data>
+          <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+        </sources>
+        <factory class="org.jenkinsci.plugins.workflow.multibranch.WorkflowBranchProjectFactory">
+          <owner class="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject" reference="../.."/>
+          <scriptPath>Jenkinsfile</scriptPath>
+        </factory>
+      </org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject>
+

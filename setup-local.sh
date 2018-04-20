@@ -6,4 +6,4 @@ helm init --wait
 # also will need to create test jobs manually (and git creds)
 helm install --name jenkins \
       --namespace jenkins \
-            stable/jenkins
+            jenkins/
