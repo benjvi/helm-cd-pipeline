@@ -64,8 +64,23 @@ If something still goes wrong during the rollout, you can rollback to the previo
 
 ## Access Control
 
-See [here](https://github.com/kubernetes/helm/blob/master/docs/securing_installation.md#best-practices-for-securing-helm-and-tiller). In a nutshell, Tiller in a secure installation should have a TLS cert issued by your PKI. Lack of authentication within tiller means that separate tillers are needed where separate administrative roles are required.
+See [here](https://github.com/kubernetes/helm/blob/master/docs/securing_installation.md#best-practices-for-securing-helm-and-tiller). In a nutshell, Tiller in a secure installation should have a TLS cert issued by your PKI. In this [secure setup](https://github.com/kubernetes/helm/blob/master/docs/tiller_ssl.md) the helm CLI must use a client side cert, which ensures only authorized access. Lack of authentication within tiller means that separate tillers are needed where separate administrative roles are required.
 
 ## Build Environment / Docker Image
 
-Jenkins is configured to run its jobs in a Docker image. This image is identical to `lachlanevanson/k8s-helm`, except that it adds helm-diff.
+Jenkins is configured to run its jobs in a Docker image. This image is identical to `lachlanevanson/k8s-helm`, except that it adds helm-diff. The checked-in Dockerfile can be used to reproduce this Docker image.
+
+## Extensions
+
+### Secrets
+
+### Reverting Manual Changes
+
+
+## Comparisons
+
+### Jenkins X
+
+### Weave Flux
+
+### Terraform
