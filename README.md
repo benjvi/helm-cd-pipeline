@@ -7,23 +7,25 @@ A sample chart, for Prometheus, is included for illustrative purposes.
 
 ## Getting Started
 
-To deploy locally from scratch, run `setup-local.sh` on your local machine. This starts Minikube and deploys a Jenkins chart into it. The Jenkins chart included contains the job definition pointing to this repo. If you already have a Jenkins set up, you only need to set up a multibranch pipeline to point to (a fork of) this repo. Note that the job must be configured to check out a branch, not in detached HEAD mode, for the deploy script to run successfully. 
+To deploy locally from scratch, run `setup-local.sh` on your local machine. This starts Minikube and deploys a Jenkins chart into it. The Jenkins chart included contains the job definition pointing to this repo. 
+
+If you already have a Jenkins set up, you only need to set up a multibranch pipeline to point to (a fork of) this repo. Note that the job must be configured to check out a branch, not in detached HEAD mode, for the deploy script to run successfully. 
 
 ## How it works
 
 On each feature branch, any changes relative to master will be deployed. On master, all changes made since the last successful build will be applied. 
 
-To avoid making duplicate revisions in the helm release history, `helm update` is only applied when the new release would be different than the currently deployed revision. This is calculated using the `helm diff` plugin. Note that this means any changes made to the releases outside of helm, eg directly with kubectl, will not be rectified automatically (helm isn't a config management tool!). 
+To avoid making duplicate revisions in the helm release history, `helm update` is only applied when the new release would be different than the currently deployed revision. This is calculated using the `helm diff` plugin. This does mean any changes made to the releases outside of helm, eg directly with kubectl, will not be rectified automatically (helm [isn't a config management tool](https://github.com/kubernetes-helm/community/blob/master/helm-v3/009-package_manager.md)!). 
 
 ## Workflow
 
 This pipeline assumes a simple development model that uses short-lived feature branches, merged via PRs to the master branch.
 
 1. In **local development**, the user can run the deploy script to their own namespace to get quick feedback on their changes
-2. When a **feature branch**     is created, the changes are pushed to a test environment to check the changes checked-in are as intended
+2. When a **feature branch** is created (or updated), the changes are pushed to a test environment to check the changes checked-in are as intended
 3. After **merging to master**, the changes from the new commits on master will be deployed into the staging environment 
 
-We assume there won't be many feature branches open at the same time *that modify the same chart*, so contention in deploying to a test environment will not be a big problem. 
+We assume there won't be many feature branches open at the same time *that modify the same chart*, so contention in test environment use will not be a big problem. 
 
 ## Layout
 
