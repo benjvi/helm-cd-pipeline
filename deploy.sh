@@ -40,8 +40,9 @@ modified_charts_git=$(git diff --name-only "${diff_base_ref}" charts/ | cut -d'/
 printf "Modified charts vs git ref ${diff_base_ref}: [ %s]\n" "$(echo $modified_charts_git | tr '\n' ' ')"
 
 # suggest: after merging to master, we apply all releases (if they are different). also periodically 
-
 ## --- For charts touched in this branch, apply helm updates if it's not a no-op --- ##
+
+current_hash=$(git rev-parse --verify --short HEAD)
 
 for chart_name in ${modified_charts_git}; do
   release_diff=$(get_release_diff "$chart_name")
@@ -60,7 +61,7 @@ for chart_name in ${modified_charts_git}; do
     # prefer not to force or purge (probably there are resources we shouldn't destroy)
     # this will also fail if a previous revision failed and was not rolled back
     # TODO: try to rollback to previous version on failure (this can still fail if its the first release)
-    helm upgrade --install --wait --timeout 120 --namespace "${target_ns}" $RELEASE_ARGS "${release}" "charts/$chart_name/chart/" || true 
+    helm upgrade --install --wait --timeout 120 --namespace "${target_ns}" $RELEASE_ARGS "${release}" "charts/$chart_name/chart/" --set "git-hash=$current_hash" || true 
   else
     printf "Deployed release \"$release\" is already up to date, skipping it\n"
   fi

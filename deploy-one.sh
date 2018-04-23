@@ -23,6 +23,7 @@ function get_release_diff() {
   fi
 }
 
+current_hash=$(git rev-parse --verify --short HEAD)
 release_diff=$(get_release_diff "$chart_name")
 release="${chart_name}-${target_ns}"
 if [ -n "$release_diff" ]; then
@@ -39,7 +40,7 @@ if [ -n "$release_diff" ]; then
   # prefer not to force or purge (probably there are resources we shouldn't destroy)
   # this will also fail if a previous revision failed and was not rolled back
   # TODO: try to rollback to previous version on failure (this can still fail if its the first release)
-  helm upgrade --install --wait --timeout 120 --namespace "${target_ns}" $RELEASE_ARGS "${release}" "charts/$chart_name/chart/" || true 
+  helm upgrade --install --wait --timeout 120 --namespace "${target_ns}" $RELEASE_ARGS "${release}" "charts/$chart_name/chart/" --set "git-hash=$current_hash" || true 
 else
   printf "Deployed release \"$release\" is already up to date, skipping it\n"
 fi
