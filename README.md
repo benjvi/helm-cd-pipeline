@@ -31,7 +31,7 @@ We assume there won't be many feature branches open at the same time *that modif
 
 The folders under `charts` are all eligible for deployment by the deploy script. The script will expect the folder name to be set to the release name, and will expect the helm chart itself to be in a subdirectory `chart`.
 
-If `values-test.yml` or `values-stage.yml` are present in the folder for an individual chart, then any values specified there will override the defaults specified in the `Values.yaml` file in the individual chart, when deploying into the corresponding namespace. Full details of values / value overrides in helm are documented [here](https://github.com/kubernetes/helm/blob/master/docs/chart_template_guide/values_files.md).
+If `values-test.yml` or `values-stage.yml` are present in the folder for an individual chart, then any values specified there will override the defaults specified in the `Values.yaml` file in the individual chart, when deploying into the corresponding namespace. You may also add override values for additional environments in the same format: `values-<env>.yml`. Full details of values / value overrides in helm are documented [here](https://github.com/kubernetes/helm/blob/master/docs/chart_template_guide/values_files.md).
 
 ## Developing locally
 
@@ -44,11 +44,25 @@ Since helm's tiller is essentially a privileged user in Kubernetes, and Helm doe
 ## Manual Tasks
 
 ### Deploying a single item
+
+If you have multiple changed charts in your local workspace or branch, there may be occasions when you want to deploy the updates to just one of them. When you do this you still want to make sure that you don't create duplicate revisions and you use the appropriate values override files. There is a separate script provided for this: `deploy-one.sh`.
+
+You can call this script by `./deploy-one.sh <target_k8s_namespace> <chart_name>`. This will deploy the release regardless of the git changeset, however, as with `deploy.sh` it will not deploy if the chart is identical to the current revision in the helm release.
+
 ### Promoting to Prod
+
+We are not pushing versioned artefacts as part of the pipeline, so for reproducible releases we rely on the versioning in this repo. Check release is the same version we deployed in stage:
+ - Chart version matches
+ - Git commit added to release matches
+ - helm diff shows no difference to version in stage
+
 ### Doing a full deploy
 
-TODO
 
 ## Access Control
 
 TODO
+
+## Build Environment / Docker Image
+
+Jenkins is configured to run its jobs in a Docker image.
