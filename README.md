@@ -72,14 +72,33 @@ Jenkins is configured to run its jobs in a Docker image. This image is identical
 
 ## Extensions
 
-### Secrets
-
 ### Reverting Manual Changes
 
+The helm model of doing deployments [is intended to allow for some manual changes](https://github.com/kubernetes/helm/issues/2070). So applying an upgrade to a release, with [any kind of flags](https://github.com/kubernetes/helm/issues/3798), will not guarantee overriding changes made manually. The only way to ensure the full configuration in the cluster matches that in the release is to delete and recreate the release (i.e. to nuke it from orbit). This is undesirable for a number of reasons.
+
+With that in mind, it is preferable to identify and rectify manual changes by another means. You can extract the manifests for the current release by `helm get manifests <release>`, then you can use a tool like [kubediff](https://github.com/weaveworks/kubediff) to compare those manifests with the current state of the cluster. Taken further, one of the goals of [Weave Flux](https://github.com/weaveworks/flux) seems to be to continuously apply such changes. 
+
+### Multiple clusters
+
+In realistic use-cases we may have some environments which are in physically separate  clusters. Since we keep our release information in git, and our helm commands are already namespaced, all we need to do is modify our deployment scripts to pass the appropriate tiller host to the helm commands. It *should* make it possible to use the same client certs for authorization (where appropriate). 
+
+### Secrets
+
+This repo does not show how to deal with config values that cannot be checked in. There are some options for injecting secrets:
+
+1. Supply them at deploy time with the `-set` flag on upgrade. However, helm currently stores its releases in plaintext, and will return this info to any authorized user. As helm [adds better functionality for dealing with secrets](https://github.com/kubernetes/helm/issues/2196) this could become the preferred option
+2. Initialize the secrets with a default value and then modify the value afterwards outside of helm. As helm allows for manual changes this should be persisted. The problem comes when someone later changes the value in helm, which will require you to make the modification again. 
+3. Create them out-of-band and refer to them in your kubernetes manifests. This works better in a small number of namespaces and where the number of secrets we have is small. The more secrets we move out of helm, the more we lose the benefits of helm packaging 
+
+### Publishing Charts
+
+TODO
 
 ## Comparisons
 
 ### Jenkins X
+
+Jenkins X is a wrapper around Jenkins that integrates with Kubernetes, adding Continous Deployment, and has a more opinionated approach to the deployment pipeline.
 
 ### Weave Flux
 
