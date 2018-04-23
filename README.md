@@ -41,7 +41,7 @@ Note that, since we calculate changes with `git diff`, new charts must be added 
 
 Since helm's tiller is essentially a privileged user in Kubernetes, and Helm does not handle AuthN/AuthZ, a user may deploy to any namespace they have access to. 
 
-## Manual Tasks
+## Other Manual Tasks
 
 ### Deploying a single item
 
@@ -51,18 +51,21 @@ You can call this script by `./deploy-one.sh <target_k8s_namespace> <chart_name>
 
 ### Promoting to Prod
 
-We are not pushing versioned artefacts as part of the pipeline, so for reproducible releases we rely on the versioning in this repo. Check release is the same version we deployed in stage:
- - Chart version matches
- - Git commit added to release matches
- - helm diff shows no difference to version in stage
+We are not pushing versioned artefacts as part of the pipeline, so for reproducible releases we rely on the versioning in this repo. 
 
-### Doing a full deploy
+1. Check out the git version to deploy with. Aprat from exceptional cases, this will be HEAD on master
+2. Check release is the same version we deployed in stage:
+ - helm diff shows no difference to version in stage (this will include changes to chart version or app version)
+ - Git commit added to release matches e.g. `helm release get prometheus-stage | grep git-hash` 
+3. Then check the changes are as expected vs prod with helm diff. 
+4. Deploy using `deploy-one.sh`, for example: `./deploy-one.sh prod prometheus`
 
+If something still goes wrong during the rollout, you can rollback to the previous version with helm, e.g. `helm rollback prometheus-prod 0`
 
 ## Access Control
 
-TODO
+See [here](https://github.com/kubernetes/helm/blob/master/docs/securing_installation.md#best-practices-for-securing-helm-and-tiller). In a nutshell, Tiller in a secure installation should have a TLS cert issued by your PKI. Lack of authentication within tiller means that separate tillers are needed where separate administrative roles are required.
 
 ## Build Environment / Docker Image
 
-Jenkins is configured to run its jobs in a Docker image.
+Jenkins is configured to run its jobs in a Docker image. This image is identical to `lachlanevanson/k8s-helm`, except that it adds helm-diff.
