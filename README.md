@@ -39,7 +39,7 @@ The deploy script has been written so it can be executed locally as well as in t
 
 Note that, since we calculate changes with `git diff`, new charts must be added to the index before they will be deployed. OTOH the chart that is deployed will be the version from the working directory. To avoid conflicts, it is suggested to use a unique namespace name, and one that easily identifies it as a development space - e.g. `dev-myfeature`.
 
-Since helm's tiller is essentially a privileged user in Kubernetes, and Helm does not handle AuthN/AuthZ, a user may deploy to any namespace they have access to. 
+Since helm's tiller is normally a privileged user in Kubernetes, and Helm does not handle authorization, a user may deploy to any namespace they have access to. 
 
 ## Other Manual Tasks
 
@@ -98,12 +98,32 @@ There are two benefits of publishing charts:
  - Control access to released versions separately from access to source
  - Easier to work with in helm, e.g. helm commands show chart versions  
 
+While the second point is a nice improvement to UX, it is the first one that will determine whether publishing charts is necessary. This could support a separate workflow for modifying config, or making charts available more widely.
+
+Chart servers can be private and can be as simple as [publishing to a Github repository](https://hackernoon.com/using-a-private-github-repo-as-helm-chart-repo-https-access-95629b2af27c). Despite the relative simplicity of this model neither this or introducing a separate pipeline for chart-related changes are likely to be worthwhile unless there are specific requirements around access control. 
+
+### GitOps
+
+TODO
+
 ## Comparisons
 
 ### Jenkins X
 
-Jenkins X is a wrapper around Jenkins that integrates with Kubernetes, adding Continous Deployment, and has a more opinionated approach to the deployment pipeline.
+Jenkins X is a wrapper around Jenkins that integrates with Kubernetes, adds Continuous Deployment capabilities, and has a more opinionated approach to the deployment pipeline. It manages different 'environments' as namespaces within kubernetes, and out of the box it understands how to deploy helm charts as part of the promotion process.
+
+It creates preview environments from feature branches, and allows for either manual or automatic promotions to environments like stage and prod. Environments are each managed in their own repo via GitOps. This repo should contain dependencies for each 'app' to be deployed into the repo, and it also allows for environment-specific manifests to be added. It seems like Jenkins X expects each app to be in its own repo, which might be overkill for infrastructure services.
+
+In general, it seems like the general approach is interesting, perhaps moreso for microservices than the kind of services we want to deploy here. It also seems like it [is planned to work with multi-cluster promotions too](https://github.com/jenkins-x/jx/issues/479), at which point it may be worth re-evaluating its use.
 
 ### Weave Flux
 
-### Terraform
+Weave Flux's normal mode of operation deals with continuously applying updated images from a registry to any form of controller (i.e. a deployment/daemonset/etc) that consumes those images. Since we want to bind the deployment configuration together with container versions and with supporting resources like config maps, this model doesn't match too well for deploying infrastructure services. However, Flux does also support [integrating with helm releases](https://github.com/weaveworks/flux/blob/master/site/helm/helm-integration.md).
+
+In this mode, charts live in a single repo, similarly to in this repository. Flux also requires you to have some CRDs which define how the charts will be deployed into releases in specific namespaces. These CRDs allow you to pass in values overrides, for values which need to be different between environments. However, it does not currently support deploying different *versions* of charts in different environments.
+
+Based on these CRDs, helm continuously syncs the chart/release definitions in the repository with the deployed versions in tiller. Remember that tiller cannot guarantee the state of resources matches the release in all circumastances. So, if access to the cluster is allowed in helm only, *and* if you are operating in a continuous deployment environment where chart versions should be the same across all environments, this model could work well. It is early days for the helm integration, having just started in February 2018. 
+
+## Others
+
+There are [many other](https://www.infoq.com/news/2018/03/skaffold-kubernetes) frameworks [to compare](https://blog.hasura.io/draft-vs-gitkube-vs-helm-vs-ksonnet-vs-metaparticle-vs-skaffold-f5aa9561f948), a lot of which seem to be relatively new, and come with significant backing. Given the amount of activity in this space, these are worth keeping an eye on.
