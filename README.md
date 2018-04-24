@@ -78,9 +78,11 @@ The helm model of doing deployments [is intended to allow for some manual change
 
 With that in mind, it is preferable to identify and rectify manual changes by another means. You can extract the manifests for the current release by `helm get manifests <release>`, then you can use a tool like [kubediff](https://github.com/weaveworks/kubediff) to compare those manifests with the current state of the cluster. Taken further, one of the goals of [Weave Flux](https://github.com/weaveworks/flux) seems to be to continuously apply such changes. 
 
+A safer approach would be to forbid modifications with kubectl altogether to production and production-like environments (only retaining break-glass roles). Standard user credentials could be issued with read-only access, while the Service Account for Tiller can retain its permissions to deploy anywhere in the cluster. 
+
 ### Multiple clusters
 
-In realistic use-cases we may have some environments which are in physically separate  clusters. Since we keep our release information in git, and our helm commands are already namespaced, all we need to do is modify our deployment scripts to pass the appropriate tiller host to the helm commands. It *should* make it possible to use the same client certs for authorization (where appropriate). 
+In realistic use-cases we may have some environments which are in physically separate  clusters. Since we keep our release information in git, and our helm commands are already namespaced, all we need to do is modify our deployment scripts to pass the appropriate tiller host to the helm commands. It *should* make it possible to use the same client certs for authorization where appropriate, however its probably better to have separate credentials. This means that the user/service-user is separately, explicitly authorized to use each cluster.  
 
 ### Secrets
 
@@ -88,11 +90,13 @@ This repo does not show how to deal with config values that cannot be checked in
 
 1. Supply them at deploy time with the `-set` flag on upgrade. However, helm currently stores its releases in plaintext, and will return this info to any authorized user. As helm [adds better functionality for dealing with secrets](https://github.com/kubernetes/helm/issues/2196) this could become the preferred option
 2. Initialize the secrets with a default value and then modify the value afterwards outside of helm. As helm allows for manual changes this should be persisted. The problem comes when someone later changes the value in helm, which will require you to make the modification again. 
-3. Create them out-of-band and refer to them in your kubernetes manifests. This works better in a small number of namespaces and where the number of secrets we have is small. The more secrets we move out of helm, the more we lose the benefits of helm packaging 
+3. Create them out-of-band and refer to them in your kubernetes manifests. This works better in a small number of namespaces and where the number of secrets we have is small. The more secrets we move out of helm, the more we lose the benefits of helm packaging. Nevertheless, this is the only real option for very secure secrets. 
 
 ### Publishing Charts
 
-TODO
+There are two benefits of publishing charts:
+ - Control access to released versions separately from access to source
+ - Easier to work with in helm, e.g. helm commands show chart versions  
 
 ## Comparisons
 
