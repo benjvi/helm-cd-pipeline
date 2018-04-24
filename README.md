@@ -104,7 +104,12 @@ Chart servers can be private and can be as simple as [publishing to a Github rep
 
 ### GitOps
 
-TODO
+It would be a *relatively* simple extension to enable triggering deployments via git / PRs for gated deployments to prod(/like) environments. For those environments, separate repo(s) would be created which would contain the description for each environment. That description would likely contain:
+ - a list of charts that should be deployed the environment
+ - the version for each chart, expressed as a git ref of this repo
+ - optionally, some variable overrides (this would allow for deployment of old packages into new environments)
+
+To support this, the deploy script would need to be changed to checkout this charts repo in a specific revision and parse the environment descriptions. 
 
 ## Comparisons
 
